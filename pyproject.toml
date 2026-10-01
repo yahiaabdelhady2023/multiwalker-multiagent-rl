@@ -1,0 +1,24 @@
+[project]
+name = "multiwalker-multiagent-rl"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "yahiaabdelhady2023", email = "handyleaf11@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "ipykernel>=7.3.0",
+    "matplotlib>=3.11.2",
+    "pettingzoo[sisl]>=1.27.0",
+    "ray[rllib]>=2.58.0",
+    "supersuit>=3.11.0",
+    "tensorflow>=2.21.0",
+]
+
+[project.scripts]
+multiwalker-multiagent-rl = "multiwalker_multiagent_rl:main"
+
+[build-system]
+requires = ["uv_build>=0.12.0,<0.13.0"]
+build-backend = "uv_build"
