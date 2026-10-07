@@ -1,0 +1,9 @@
+training:
+  batch_size: 32
+  max_epoch: 5
+  step_per_epoch: 1000      # Epoch finishes after only 200 total steps
+  step_per_collect: 200      # Pause to train every 50 steps
+  repeat_per_collect: 1     # Train on the 50 steps only 1 time
+  episode_per_test: 1
+  ######################
+  save_model_interval: 1   # Save every 2 epochs , so we will
