@@ -40,12 +40,34 @@ action_scaling=True, neural networks work best [+1 to -1] for output why? not su
 4. Saved model and optimizer checkpoints for epochs 1–5. The run artifacts are under `outputs/2026-10-07/00-29-11/` and include the saved Hydra config, training log, five checkpoints, five evaluation videos, and a TensorBoard event file.
 5. Checked the run configuration: this is still a smoke-scale run (5 epochs, 1,000 steps per epoch, batch size 32, and 1 test episode). Treat these artifacts as an end-to-end pipeline check, not a completed/fully trained model.
 
-## Still to do / follow-up
+# 10/8/2026
 
-- Explain shared PPO policy versus `MultiAgentPolicyManager`, and PettingZoo Parallel versus AEC APIs and the Tianshou `PettingZooEnv` wrapper, including expected inputs and outputs.
-- Document the evaluation-video path in detail, including CUDA inference, CPU/NumPy action conversion, batch shape, and video-frame handling.
-- Add a Matplotlib helper to save team rewards, and persist reward history to JSON for later loading.
-- Ask Gemini about possible evaluation-video performance optimizations.
-- Launch TensorBoard and verify the UI can read the generated event file; installation and event-file creation are confirmed, but UI startup was not confirmed.
-- Review the run log's 6,566 PettingZoo warnings about actions outside the `[-1, 1]` action space being clipped. The environment clips them, but action scaling/bounds should be checked before longer training.
-- Note: `train/video_module.py` is a separate random-frame video example; the trainer's actual evaluation recording is implemented inside `train/training.py`.
+1. Wrote `analysis/tianshou_framework.md` to document how the Tianshou framework fits into the project.
+2. Organized the training output format so run artifacts are grouped in the output directory, including checkpoints, evaluation videos, reward graphs, and TensorBoard logs.
+3. Launched TensorBoard using the run's `tb_logs/` directory and confirmed that it works. I do not understand all the information in the dashboard yet, so interpreting the charts and metrics is still something to learn.
+4. Explored video-encoding options that may make video generation faster and use less CPU, at the cost of larger video files. This is still an approach under consideration, not a confirmed performance improvement.
+5. Generated team-reward graphs for training and evaluation and saved them with the checkpoint outputs.
+
+# 10/11/2026
+
+1. Added the MultiWalker environment and reward settings to the Hydra config, and wired them into both training and evaluation environments so reward-related parameters can be adjusted in one place.
+2. Wrote `analysis/reward_function.md` to summarize the MultiWalker reward parameters, their effects, and how shared rewards work.
+3. Wrote `analysis/train_parameters.md` to explain the training hyperparameters, including how collection frequency, update repeats, and batch size affect training.
+4. Learned how to use TensorBoard to monitor training and what to look for in the reward and episode-length charts, including how reward and episode length together can indicate whether the walkers are progressing or merely surviving. Documented these notes in `analysis/tensorboard.md`.
+
+# 10/12/2026
+
+1. Started the experimental phase properly: I ran a first set of training experiments and began comparing the effects of reward tuning on agent behavior.
+2. I reviewed both Experiment One and Experiment Two in detail before moving forward. They showed a clear pattern: the agent learns survival and balancing more than pure forward motion, but it often shifts between aggressive movement and cautious balancing depending on the penalty strength.
+3. In Experiment One, the default reward settings (`fall_reward = -10`) produced unstable learning. Epoch 2 and later epochs showed a mix of improved rewards and the agent sometimes switching to aggressive forward motion without keeping balance. The strongest behavior looked like the model was trying to balance and survive rather than chase reward aggressively.
+4. In Experiment Two, I increased the penalty for falling to `fall_reward = -15` and kept the same training loop. The stronger penalty helped the policy prefer staying upright, and by Epoch 4 and Epoch 5 the agent showed noticeably more stable behavior and better reward trends than earlier runs. The middle walker still tended to die first, but the overall policy was more consistent.
+5. Current takeaway: the agent is learning, but it is still under-optimizing the trade-off between staying alive and moving forward. The stronger fall penalty is helping, so the next step is to keep increasing the penalty to push the policy toward safer balancing behavior rather than reckless forward motion.
+6. I have now moved from setup and understanding into real experimentation, and I am using the run outputs, videos, and reward plots as the evidence base for the next tuning cycle.
+7. The current training outputs are in `outputs/2026-10-11/` and `outputs/2026-10-12/`, and I am using those checkpoints to compare how reward changes affect training progression over time.
+
+# 10/13/2026
+
+1. Wrote a PPO summary in `documents/ppo_explained.md`, covering the actor and critic, rollout collection, advantage estimates, mini-batch updates, clipping, on-policy learning, and entropy.
+2. Read about additional PPO training metrics and how to interpret their TensorBoard graphs: approximate KL divergence, policy loss, value loss, and explained variance. These metrics can help diagnose how much the policy changes during updates, how the actor and critic losses behave, and how well the critic predicts returns.
+3. Next: investigate how to expose and log these metrics from Tianshou in TensorBoard, then add them to the training workflow so future runs can be monitored alongside reward and episode length.
+

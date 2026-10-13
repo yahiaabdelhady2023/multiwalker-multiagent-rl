@@ -1,9 +1,26 @@
 training:
-  batch_size: 32
+  batch_size: 64 #GPU prefer this or 256 for modern GPU, 32 is slow for GPU
   max_epoch: 5
-  step_per_epoch: 1000      # Epoch finishes after only 200 total steps
-  step_per_collect: 200      # Pause to train every 50 steps
-  repeat_per_collect: 1     # Train on the 50 steps only 1 time
+  step_per_epoch: 10024    # Epoch finishes after only 200 total steps
+  step_per_collect: 128      # Pause to train every 50 steps
+  repeat_per_collect: 2     # Train on the 50 steps only 1 time
   episode_per_test: 1
   ######################
-  save_model_interval: 1   # Save every 2 epochs , so we will
+  save_model_interval: 1   # Save every 10 epochs, so 10 models
+  learning_rate: 0.0003 # known as the magically number for PPO
+
+# for context learning_rate :0.01 is TOO HIGH network will forget a lot and make big changes
+# for context learning_rate :0.000001 is TOO LOW network will take
+# VERY TINY steps, time taken to train will be same but progress in graph will be very tiny after training for 30 mins
+
+
+
+multiwalker_reward_function:
+  n_walkers: 3 #default value is 3
+  forward_reward: 1.0 #default value is 1
+  fall_reward: -25.0 #default value is -10
+  terminate_reward: -150.0 #default value is -100.0
+  terminate_on_fall: True #default value is True
+  shared_reward: True #default value is True
+  max_cycles: 500 #default value is 500
+  terrain_length: 200 #default value is 200
